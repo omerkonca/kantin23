@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Plus } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
 
 interface UrunFormProps {
   onSuccess: () => void;
@@ -11,9 +12,12 @@ export function UrunForm({ onSuccess }: UrunFormProps) {
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('');
   const [loading, setLoading] = useState(false);
+  const { user } = useAuthStore();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!user) return;
+    
     setLoading(true);
 
     try {
@@ -22,6 +26,7 @@ export function UrunForm({ onSuccess }: UrunFormProps) {
           name,
           price: parseFloat(price),
           stock: parseInt(stock),
+          created_by: user.id // Kullanıcı ID'sini ekliyoruz
         },
       ]);
 
@@ -33,6 +38,7 @@ export function UrunForm({ onSuccess }: UrunFormProps) {
       onSuccess();
     } catch (error) {
       console.error('Ürün eklenirken hata:', error);
+      alert('Ürün eklenirken bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Product } from '../../types';
 import { useAuthStore } from '../../store/authStore';
+import { formatCurrency } from '../../utils/currency';
 
 interface SepetProps {
   sepet: Map<string, number>;
@@ -11,6 +12,7 @@ interface SepetProps {
 
 export function Sepet({ sepet, urunler, onSuccess }: SepetProps) {
   const [loading, setLoading] = useState(false);
+  const [isCredit, setIsCredit] = useState(false);
   const { user } = useAuthStore();
 
   const sepetUrunleri = Array.from(sepet.entries()).map(([id, miktar]) => ({
@@ -28,15 +30,24 @@ export function Sepet({ sepet, urunler, onSuccess }: SepetProps) {
     setLoading(true);
 
     try {
-      // Kullanıcı bakiyesini kontrol et
+      // Kullanıcı profili ve kredi limiti kontrolü
       const { data: profile } = await supabase
         .from('profiles')
-        .select('balance')
+        .select('balance, credit_limit')
         .eq('id', user.id)
         .single();
 
-      if (!profile || profile.balance < toplam) {
+      if (!profile) {
+        throw new Error('Kullanıcı profili bulunamadı');
+      }
+
+      if (!isCredit && profile.balance < toplam) {
         alert('Yetersiz bakiye!');
+        return;
+      }
+
+      if (isCredit && (!profile.credit_limit || profile.credit_limit < toplam)) {
+        alert('Yetersiz kredi limiti!');
         return;
       }
 
@@ -45,11 +56,36 @@ export function Sepet({ sepet, urunler, onSuccess }: SepetProps) {
         user_id: user.id,
         product_id: urun.id,
         quantity: miktar,
-        total_price: urun.price * miktar
+        total_price: urun.price * miktar,
+        is_credit: isCredit,
+        paid: !isCredit
       }));
 
       const { error: salesError } = await supabase.from('sales').insert(sales);
       if (salesError) throw salesError;
+
+      // Veresiye satış ise kredi kaydı oluştur
+      if (isCredit) {
+        const dueDate = new Date();
+        dueDate.setMonth(dueDate.getMonth() + 1);
+
+        const { error: creditError } = await supabase.from('credits').insert({
+          user_id: user.id,
+          amount: toplam,
+          paid_amount: 0,
+          due_date: dueDate.toISOString()
+        });
+
+        if (creditError) throw creditError;
+      } else {
+        // Nakit satış ise bakiyeyi güncelle
+        const { error: balanceError } = await supabase
+          .from('profiles')
+          .update({ balance: profile.balance - toplam })
+          .eq('id', user.id);
+
+        if (balanceError) throw balanceError;
+      }
 
       // Stokları güncelle
       for (const { urun, miktar } of sepetUrunleri) {
@@ -60,14 +96,6 @@ export function Sepet({ sepet, urunler, onSuccess }: SepetProps) {
         
         if (stockError) throw stockError;
       }
-
-      // Bakiyeyi güncelle
-      const { error: balanceError } = await supabase
-        .from('profiles')
-        .update({ balance: profile.balance - toplam })
-        .eq('id', user.id);
-
-      if (balanceError) throw balanceError;
 
       onSuccess();
     } catch (error) {
@@ -94,7 +122,7 @@ export function Sepet({ sepet, urunler, onSuccess }: SepetProps) {
         {sepetUrunleri.map(({ urun, miktar }) => (
           <div key={urun.id} className="flex justify-between text-sm">
             <span>{urun.name} x {miktar}</span>
-            <span>₺{(urun.price * miktar).toFixed(2)}</span>
+            <span>{formatCurrency(urun.price * miktar)}</span>
           </div>
         ))}
       </div>
@@ -102,8 +130,21 @@ export function Sepet({ sepet, urunler, onSuccess }: SepetProps) {
       <div className="border-t pt-4">
         <div className="flex justify-between font-medium">
           <span>Toplam</span>
-          <span>₺{toplam.toFixed(2)}</span>
+          <span>{formatCurrency(toplam)}</span>
         </div>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="isCredit"
+          checked={isCredit}
+          onChange={(e) => setIsCredit(e.target.checked)}
+          className="rounded text-indigo-600 focus:ring-indigo-500"
+        />
+        <label htmlFor="isCredit" className="text-sm text-gray-700">
+          Veresiye
+        </label>
       </div>
       
       <button

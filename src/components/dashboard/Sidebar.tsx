@@ -5,7 +5,8 @@ import {
   Package, 
   CreditCard, 
   History,
-  BarChart3
+  BarChart3,
+  Users
 } from 'lucide-react';
 import { User } from '../../types';
 
@@ -23,6 +24,7 @@ export function Sidebar({ user }: SidebarProps) {
           <div className="space-y-1">
             <NavItem icon={Package} to="/urunler" text="Ürünler" />
             <NavItem icon={ShoppingBag} to="/satislar" text="Satışlar" />
+            <NavItem icon={Users} to="/musteriler" text="Müşteriler" />
             <NavItem icon={CreditCard} to="/bakiye-yukle" text="Bakiye Yükle" />
             <NavItem icon={BarChart3} to="/raporlar" text="Raporlar" />
           </div>
@@ -31,6 +33,7 @@ export function Sidebar({ user }: SidebarProps) {
             <NavItem icon={ShoppingBag} to="/siparis" text="Sipariş Ver" />
             <NavItem icon={History} to="/gecmis" text="Sipariş Geçmişi" />
             <NavItem icon={CreditCard} to="/bakiye" text="Bakiyem" />
+            <NavItem icon={CreditCard} to="/borclar" text="Borçlarım" />
           </div>
         )}
       </nav>

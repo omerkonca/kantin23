@@ -12,10 +12,12 @@ export function DashboardLayout({ user }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-100">
       <Header user={user} />
-      <div className="flex">
+      <div className="flex flex-col md:flex-row">
         <Sidebar user={user} />
-        <main className="flex-1 p-6">
-          <Outlet />
+        <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
+          <div className="max-w-7xl mx-auto">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

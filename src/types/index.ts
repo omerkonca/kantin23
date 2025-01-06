@@ -6,6 +6,7 @@ export interface User {
   role: UserRole;
   name: string;
   balance?: number;
+  credit_limit?: number;
 }
 
 export interface Product {
@@ -23,6 +24,8 @@ export interface Sale {
   product_id: string;
   quantity: number;
   total_price: number;
+  is_credit: boolean;
+  paid: boolean;
   created_at: string;
   products?: {
     name: string;
@@ -38,4 +41,13 @@ export interface Payment {
   user_id: string;
   amount: number;
   created_at: string;
+}
+
+export interface Credit {
+  id: string;
+  user_id: string;
+  amount: number;
+  paid_amount: number;
+  created_at: string;
+  due_date: string;
 }
