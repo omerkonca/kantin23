@@ -3,7 +3,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/user');
 const productRoutes = require('./routes/product');
 const transactionRoutes = require('./routes/transaction');
 
@@ -13,6 +12,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Test route
+app.get('/', (req, res) => {
+  res.json({ message: 'Kantin23 API is running!' });
+});
+
 // Database connection
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
@@ -20,7 +24,6 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/transactions', transactionRoutes);
 
@@ -31,6 +34,6 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });

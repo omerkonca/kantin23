@@ -44,20 +44,27 @@ class AuthService extends ChangeNotifier {
 
   Future<bool> login(String email, String password) async {
     try {
+      debugPrint('AuthService: Initializing API service...');
       _apiService = await ApiService.create(authToken: null);
-      final user = await _apiService.login(email, password);
-      _token = user.id; // Assuming the token is the user ID for now
+      
+      debugPrint('AuthService: Calling login...');
+      final result = await _apiService.login(email, password);
+      
+      debugPrint('AuthService: Login successful, saving token...');
+      _token = result['token'] as String;
       await _prefs.setString('auth_token', _token!);
       
-      // Initialize API service with the new token
+      debugPrint('AuthService: Reinitializing API service with token...');
       _apiService = await ApiService.create(authToken: _token);
       
-      // Fetch user profile
-      _currentUser = await _apiService.getUserProfile(_token!);
+      debugPrint('AuthService: Setting current user...');
+      _currentUser = result['user'] as User;
       
+      debugPrint('AuthService: Login complete');
       notifyListeners();
       return true;
     } catch (e) {
+      debugPrint('AuthService Error: $e');
       rethrow;
     }
   }

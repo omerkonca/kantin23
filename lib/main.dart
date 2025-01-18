@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/login_screen.dart';
+import 'screens/admin/admin_home.dart';
+import 'screens/student/student_home.dart';
 import 'services/auth_service.dart';
 
 void main() {
@@ -60,7 +62,21 @@ class WindsurfApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const LoginScreen(),
+      home: Consumer<AuthService>(
+        builder: (context, authService, _) {
+          if (!authService.isLoggedIn) {
+            return const LoginScreen();
+          }
+          return authService.isAdmin ? const AdminHomePage() : const StudentHomePage();
+        },
+      ),
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/home': (context) {
+          final authService = Provider.of<AuthService>(context, listen: false);
+          return authService.isAdmin ? const AdminHomePage() : const StudentHomePage();
+        },
+      },
       debugShowCheckedModeBanner: false,
     );
   }

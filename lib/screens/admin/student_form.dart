@@ -27,7 +27,7 @@ class _StudentFormState extends State<StudentForm> {
     _initApiService();
     if (widget.student != null) {
       _nameController.text = widget.student!.name;
-      _studentIdController.text = widget.student!.studentId;
+      _studentIdController.text = widget.student!.studentId ?? '';
     }
   }
 

@@ -253,7 +253,7 @@ class _StudentHomeState extends State<StudentHome> with SingleTickerProviderStat
                               user.name,
                               style: Theme.of(context).textTheme.titleLarge,
                             ),
-                            Text(user.studentId),
+                            Text(user.studentId ?? 'Öğrenci No Yok'),
                             const SizedBox(height: 8),
                             Text(
                               '₺${user.balance.toStringAsFixed(2)}',
